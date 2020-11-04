@@ -7,8 +7,8 @@ const register = (req, res) => {
             .json({ message: "All fields are required" });
     let user = new User({
         email: req.body.email,
-        first_name: req.body.firstName,
-        last_name: req.body.lastName
+        firstName: req.body.firstName,
+        lastName: req.body.lastName
     });
     user.setPassword(req.body.password);
     user.save()

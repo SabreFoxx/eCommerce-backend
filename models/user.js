@@ -9,25 +9,25 @@ env.config();
  */
 export class User {
     id;
-    first_name;
-    last_name;
+    firstName;
+    lastName;
     email;
     /**
      * encrypted password
      */
     password;
-    password_salt;
+    passwordSalt;
 
     /**
      * Create an in-memory user account object
-     * @param {*} details object containing id, first_name, last_name, email, and password
+     * @param {*} details object containing id, firstName, lastName, email, and password
      */
-    constructor({ account_id = null, first_name = null,
-        last_name = null, email = null,
+    constructor({ accountId = null, firstName = null,
+        lastName = null, email = null,
         password = null } = {}) {
-        this.id = account_id;
-        this.first_name = first_name;
-        this.last_name = last_name;
+        this.id = accountId;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.email = email;
         this.password = password;
     }
@@ -38,11 +38,11 @@ export class User {
      */
     save() {
         return db('account').insert({
-            first_name: this.first_name,
-            last_name: this.last_name,
+            firstName: this.firstName,
+            lastName: this.lastName,
             email: this.email,
             password: this.password,
-            password_salt: this.password_salt
+            passwordSalt: this.passwordSalt
         }).catch(err => {
             if (err.code == RECORD_ALREADY_EXISTS)
                 throw new Error('User already exists');
@@ -56,14 +56,18 @@ export class User {
      * @return {Promise}
      */
     static loginUsing(email, plainPassword) {
+        // let f = db('account').select().where('first_name', email).toSQL()
+        // console.log(f)
+        // throw new Error
         return db('account').select().where('email', email)
             .then(record => {
                 if (record.length < 1)
                     return null;
-                let { account_id, first_name, last_name, email, password,
-                    password_salt } = record[0];
-                let user = new User({ account_id, first_name, last_name, email, password });
-                user.setSalt(password_salt);
+                return;
+                let { accountId, firstName, lastName, email, password,
+                    passwordSalt } = record[0];
+                let user = new User({ accountId, firstName, lastName, email, password });
+                user.setSalt(passwordSalt);
                 console.log(user)
                 if (user.isPasswordValid(plainPassword)) return user;
                 else return null;
@@ -79,7 +83,7 @@ export class User {
         return jwt.sign({
             id: this.id,
             email: this.email,
-            first_name: this.first_name,
+            firstName: this.firstName,
             exp: parseInt(expiry.getTime() / 1000, 10)
         }, process.env.JWT_SECRET);
     }
@@ -89,9 +93,9 @@ export class User {
      * @param {string} plainPassword plain password striing
      */
     setPassword(plainPassword) {
-        this.password_salt = crypto.randomBytes(16).toString('hex');
+        this.passwordSalt = crypto.randomBytes(16).toString('hex');
         this.password = crypto
-            .pbkdf2Sync(plainPassword, this.password_salt, 1000, 64, 'sha512')
+            .pbkdf2Sync(plainPassword, this.passwordSalt, 1000, 64, 'sha512')
             .toString('hex');
     }
 
@@ -101,7 +105,7 @@ export class User {
      */
     isPasswordValid(plainPassword) {
         const passwordHash = crypto
-            .pbkdf2Sync(plainPassword, this.password_salt, 1000, 64, 'sha512')
+            .pbkdf2Sync(plainPassword, this.passwordSalt, 1000, 64, 'sha512')
             .toString('hex');
         return this.password === passwordHash;
     }
@@ -111,6 +115,6 @@ export class User {
      * @param {sting} string 
      */
     setSalt(string) {
-        this.password_salt = string;
+        this.passwordSalt = string;
     }
 }

@@ -4,13 +4,50 @@ env.config();
 
 export const RECORD_ALREADY_EXISTS = 23505;
 
-const convertToSnakeCase = str => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+const camelToSnakeCase = str => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 
-const convertToCamel = str => str.toLowerCase().replace(/([-_][a-z])/g, group => group
+const snakeToCamelCase = str => str.toLowerCase().replace(/([-_][a-z])/g, group => group
     .toUpperCase()
     .replace('-', '')
     .replace('_', '')
 );
+
+function changeObjectPropertiesToCamelCase(o) {
+    return { bll: 'laa' };
+    return { bll: 'laa' };
+    var newO, origKey, newKey, value;
+    if (o instanceof Array) {
+        return o.map(function (value) {
+            if (typeof value === "object") {
+                value = snakeToCamelCase(value)
+            }
+            return value;
+        })
+    } else {
+        newO = {}
+        for (origKey in o) {
+            if (o.hasOwnProperty(origKey)) {
+                newKey = (origKey.charAt(0).toLowerCase() + origKey.slice(1) || origKey).toString()
+                value = o[origKey]
+                if (value instanceof Array || (value !== null && value.constructor === Object)) {
+                    value = snakeToCamelCase(value)
+                }
+                newO[newKey] = value;
+            }
+        }
+    }
+    return newO;
+}
+
+// console.log(changeObjectPropertiesToCamelCase({
+//     account_id: 11,
+//     first_name: 'Chinyere',
+//     last_name: 'Odinukwe',
+//     email: 'chinyere@chinyere.com',
+//     password: 'a4ebfcfea7446813194438e586b410483368a6141fcdba755e99c81b6589e43ebfec2463161f57bec7882e958694146eca55a9c110de7c65b4c8e359fc5fb071',
+//     other: null,
+//     password_salt: 'd38ae779ee23de3b63d89868b73b661f'
+// }));
 
 const db = knex({
     client: 'pg',
@@ -19,15 +56,16 @@ const db = knex({
     searchPath: ['basic', 'public'],
     // snake_case -> camelCase converter
     postProcessResponse: (result, queryContext) => {
+        console.log(result)
         // TODO: add special case for raw results (depends on dialect)
         if (Array.isArray(result)) {
-            return result.map(row => convertToCamel(row));
+            return result.map(row => changeObjectPropertiesToCamelCase(row));
         } else {
-            return convertToCamel(result);
+            return changeObjectPropertiesToCamelCase(result);
         }
     },
     // camelCase -> snake_case converter
-    wrapIdentifier: (value, origImpl, queryContext) => origImpl(convertToSnakeCase(value))
+    wrapIdentifier: (value, origImpl, queryContext) => origImpl(camelToSnakeCase(value))
 });
 
 export default db;
