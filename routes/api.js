@@ -12,8 +12,12 @@ const auth = expressJwt({
 });
 
 import { login, register } from '../controllers/auth.js';
+import { currentUser } from '../controllers/hello.js';
 
 router.post('/register', register);
 router.post('/login', login);
+
+router.route('/me')
+    .get(auth, currentUser);
 
 export default router;

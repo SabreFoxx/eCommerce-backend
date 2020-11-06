@@ -12,34 +12,21 @@ const snakeToCamelCase = str => str.toLowerCase().replace(/([-_][a-z])/g, group 
     .replace('_', '')
 );
 
-function changeObjectPropertiesToCamelCase(o) {
-    return { bll: 'laa' };
-    return { bll: 'laa' };
-    var newO, origKey, newKey, value;
-    if (o instanceof Array) {
-        return o.map(function (value) {
-            if (typeof value === "object") {
-                value = snakeToCamelCase(value)
-            }
-            return value;
-        })
-    } else {
-        newO = {}
-        for (origKey in o) {
-            if (o.hasOwnProperty(origKey)) {
-                newKey = (origKey.charAt(0).toLowerCase() + origKey.slice(1) || origKey).toString()
-                value = o[origKey]
-                if (value instanceof Array || (value !== null && value.constructor === Object)) {
-                    value = snakeToCamelCase(value)
-                }
-                newO[newKey] = value;
-            }
-        }
+function toCamelCasedObject(object) {
+    let keys = Object.keys(object);
+    let n = keys.length;
+    let newObject = new Object;
+    while (n--) {
+        let key = keys[n];
+        if (typeof object[key] === 'string')
+            newObject[snakeToCamelCase(key)] = snakeToCamelCase(object[key]);
+        else
+            newObject[snakeToCamelCase(key)] = object[key];
     }
-    return newO;
+    return newObject;
 }
 
-// console.log(changeObjectPropertiesToCamelCase({
+// console.log(toCamelCasedObject({
 //     account_id: 11,
 //     first_name: 'Chinyere',
 //     last_name: 'Odinukwe',
@@ -56,12 +43,11 @@ const db = knex({
     searchPath: ['basic', 'public'],
     // snake_case -> camelCase converter
     postProcessResponse: (result, queryContext) => {
-        console.log(result)
         // TODO: add special case for raw results (depends on dialect)
         if (Array.isArray(result)) {
-            return result.map(row => changeObjectPropertiesToCamelCase(row));
+            return result.map(row => toCamelCasedObject(row));
         } else {
-            return changeObjectPropertiesToCamelCase(result);
+            return toCamelCasedObject(result);
         }
     },
     // camelCase -> snake_case converter

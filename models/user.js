@@ -63,7 +63,6 @@ export class User {
             .then(record => {
                 if (record.length < 1)
                     return null;
-                return;
                 let { accountId, firstName, lastName, email, password,
                     passwordSalt } = record[0];
                 let user = new User({ accountId, firstName, lastName, email, password });
